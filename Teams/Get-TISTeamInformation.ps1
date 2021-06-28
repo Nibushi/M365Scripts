@@ -2,7 +2,9 @@
 param(
     # Use the GUID of the group as multiple groups can have the same name
     [Parameter(Mandatory)]
-    [string]$groupId
+    [string]$groupId,
+
+    [switch]$openInBrowser
 )
 
 $team = Get-Team -GroupId $groupId
@@ -58,7 +60,7 @@ $funSettings = [PSCustomObject]@{
 $currFolder = $PSScriptRoot
 $styleSheetPath =  Join-Path $currFolder "styles.css"
 $styleInfo = Get-Content -Path $styleSheetPath -Raw
-$css = "<style>$styleInfo</style>"
+$css = "<title>$($team.DisplayName) - $(Get-Date)</title><style>$styleInfo</style>"
 
 $TeamName = "<h1>$($team.DisplayName) - Detailed Information</h1>"
 $generalInfo = $generalSettings | ConvertTo-Html -As List -Fragment -PreContent "<h2>General Team Info</h2>"
@@ -83,6 +85,10 @@ $Report = ConvertTo-Html -Body "$TeamName $generalInfo $Members $channels $membe
 $Report = $Report -replace "<td>True</td>", "<td class='valueIsTrue'>True</td>"
 $Report = $Report -replace "<td>False</td>", "<td class='valueIsFalse'>False</td>"
 
-$Report | Out-File -FilePath (Join-Path $currFolder "Basic-Information-Report.html")
+$reportDate = Get-Date -Format yyyyMMddHHmmss
+$ReportfilePath = Join-Path $currFolder "$($reportDate)_$($team.DisplayName)_Information_Report.html"
+$Report | Out-File -FilePath $ReportfilePath
 
-Explorer .\Basic-Information-Report.html
+if($openInBrowser){
+    Explorer $ReportfilePath
+}
