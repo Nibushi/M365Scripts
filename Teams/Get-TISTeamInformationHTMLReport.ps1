@@ -86,14 +86,13 @@ $Report = ConvertTo-Html -Body "$TeamName $generalInfo $Members $channels $membe
 $Report = $Report -replace "<td>True</td>", "<td class='valueIsTrue'>True</td>"
 $Report = $Report -replace "<td>False</td>", "<td class='valueIsFalse'>False</td>"
 
+$reportDate = Get-Date -Format yyyyMMddHHmmss
 
 if($PSBoundParameters.Keys.Contains('reportFolderPath')){
     $ReportfilePath = Join-Path $reportFolderPath "$($reportDate)_$($team.DisplayName)_Information_Report.html"
 } else {
     $ReportfilePath = Join-Path $PSScriptRoot "$($reportDate)_$($team.DisplayName)_Information_Report.html"
 }
-
-$reportDate = Get-Date -Format yyyyMMddHHmmss
 
 $Report | Out-File -FilePath $ReportfilePath
 
