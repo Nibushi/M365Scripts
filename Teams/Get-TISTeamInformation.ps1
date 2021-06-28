@@ -4,6 +4,8 @@ param(
     [Parameter(Mandatory)]
     [string]$groupId,
 
+    [string]$reportFolderPath,
+
     [switch]$openInBrowser
 )
 
@@ -57,10 +59,9 @@ $funSettings = [PSCustomObject]@{
     "Allow memes to be uploaded" = $team.AllowCustomMemes
 }
 
-$currFolder = $PSScriptRoot
-$styleSheetPath =  Join-Path $currFolder "styles.css"
+$styleSheetPath =  Join-Path $PSScriptRoot "styles.css"
 $styleInfo = Get-Content -Path $styleSheetPath -Raw
-$css = "<title>$($team.DisplayName) - $(Get-Date)</title><style>$styleInfo</style>"
+$header = "<title>$($team.DisplayName) - $(Get-Date)</title><style>$styleInfo</style>"
 
 $TeamName = "<h1>$($team.DisplayName) - Detailed Information</h1>"
 $generalInfo = $generalSettings | ConvertTo-Html -As List -Fragment -PreContent "<h2>General Team Info</h2>"
@@ -81,12 +82,19 @@ $mentions = $mentions -replace "<table>","<table class='AsList'>"
 $funstuff = $funSettings | ConvertTo-Html -As List -Fragment -PreContent "<h2>Fun Stuff</h2>"
 $funstuff = $funstuff -replace "<table>","<table class='AsList'>"
 
-$Report = ConvertTo-Html -Body "$TeamName $generalInfo $Members $channels $memberPermissions $guestPermissions $mentions $funstuff" -Head $css -Title "$($team.DisplayName) Information Report" -PostContent "<p id='CreationDate'>Creation Date: $(Get-Date)<p>"
+$Report = ConvertTo-Html -Body "$TeamName $generalInfo $Members $channels $memberPermissions $guestPermissions $mentions $funstuff" -Head $header -Title "$($team.DisplayName) Information Report" -PostContent "<p id='CreationDate'>Creation Date: $(Get-Date)<p>"
 $Report = $Report -replace "<td>True</td>", "<td class='valueIsTrue'>True</td>"
 $Report = $Report -replace "<td>False</td>", "<td class='valueIsFalse'>False</td>"
 
+
+if($PSBoundParameters.Keys.Contains('reportFolderPath')){
+    $ReportfilePath = Join-Path $reportFolderPath "$($reportDate)_$($team.DisplayName)_Information_Report.html"
+} else {
+    $ReportfilePath = Join-Path $PSScriptRoot "$($reportDate)_$($team.DisplayName)_Information_Report.html"
+}
+
 $reportDate = Get-Date -Format yyyyMMddHHmmss
-$ReportfilePath = Join-Path $currFolder "$($reportDate)_$($team.DisplayName)_Information_Report.html"
+
 $Report | Out-File -FilePath $ReportfilePath
 
 if($openInBrowser){
