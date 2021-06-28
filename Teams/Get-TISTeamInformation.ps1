@@ -1,6 +1,11 @@
-Connect-MicrosoftTeams
+[CmdletBinding()]
+param(
+    # Use the GUID of the group as multiple groups can have the same name
+    [Parameter(Mandatory)]
+    [string]$groupId
+)
 
-$team = Get-Team -GroupId a00a11e1-810b-412b-a902-fc9afe4ac325
+$team = Get-Team -GroupId $groupId
 
 $ChannelInfo = Get-TeamChannel -GroupId $team.GroupId
 
@@ -50,7 +55,9 @@ $funSettings = [PSCustomObject]@{
     "Allow memes to be uploaded" = $team.AllowCustomMemes
 }
 
-$styleInfo = Get-Content -Path F:\GitHubRepos\styles.css -Raw
+$currFolder = $PSScriptRoot
+$styleSheetPath =  Join-Path $currFolder "styles.css"
+$styleInfo = Get-Content -Path $styleSheetPath -Raw
 $css = "<style>$styleInfo</style>"
 
 $TeamName = "<h1>$($team.DisplayName) - Detailed Information</h1>"
@@ -76,6 +83,6 @@ $Report = ConvertTo-Html -Body "$TeamName $generalInfo $Members $channels $membe
 $Report = $Report -replace "<td>True</td>", "<td class='valueIsTrue'>True</td>"
 $Report = $Report -replace "<td>False</td>", "<td class='valueIsFalse'>False</td>"
 
-$Report | Out-File -FilePath .\Basic-Information-Report.html
+$Report | Out-File -FilePath (Join-Path $currFolder "Basic-Information-Report.html")
 
 Explorer .\Basic-Information-Report.html
